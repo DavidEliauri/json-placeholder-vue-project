@@ -1,24 +1,82 @@
 <script setup>
     import axios from 'axios';
     import PostCard from '@/components/PostCard.vue';
+    import SearchForm from '@/components/SearchForm.vue';
     import { onMounted, ref } from 'vue';
 
     const users = ref([]);
     const posts = ref([]);
 
     onMounted(async () => {
-        const getUsersResponse = await axios.get('https://jsonplaceholder.typicode.com/users');
-
-        users.value = getUsersResponse.data;
-
-        const getPostsResponse = await axios.get('https://jsonplaceholder.typicode.com/posts');
-
-        posts.value = getPostsResponse.data;
+        posts.value = await getPosts();
+        users.value = await getUsers();
     });
+
+    const userQuery = ref('');
+
+    async function onQuerySubmit() {
+        if (!userQuery.value) {
+            posts.value = await getPosts();
+
+            return;
+        }
+
+        const userId = users.value.find((u) => {
+            return u.name === userQuery.value;
+        })?.id;
+
+        if (!userId) {
+            posts.value = [];
+
+            return;
+        }
+
+        posts.value = await getPosts(userId);
+    }
+
+    const postsLoading = ref(false);
+
+    async function getPosts(userId) {
+        postsLoading.value = true;
+
+        const response = await axios.get('https://jsonplaceholder.typicode.com/posts', {
+            params: {
+                userId: userId,
+            },
+        });
+
+        postsLoading.value = false;
+
+        return response.data;
+    }
+
+    async function getUsers() {
+        const response = await axios.get('https://jsonplaceholder.typicode.com/users');
+
+        return response.data;
+    }
 </script>
 
 <template>
-    <div class="columns-2 lg:columns-3">
+    <div class="mb-8 lg:w-[400px] lg:mx-auto">
+        <SearchForm
+            v-model="userQuery"
+            @submit="onQuerySubmit"
+            :placeholder="'Отфильтровать по автору...'"
+        />
+    </div>
+
+    <div
+        v-if="postsLoading === true"
+        class="text-lg text-center"
+    >
+        Загружаю...
+    </div>
+
+    <div
+        v-else-if="posts.length"
+        class="columns-2 lg:columns-3"
+    >
         <div
             v-for="post in posts"
             :key="post.id"
@@ -34,5 +92,12 @@
                 "
             />
         </div>
+    </div>
+
+    <div
+        v-else
+        class="text-lg text-center"
+    >
+        😞 Ничего не найдено
     </div>
 </template>
