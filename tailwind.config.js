@@ -4,9 +4,13 @@ module.exports = {
     theme: {
         container: {
             padding: '1rem',
-            center: true
+            center: true,
         },
-        extend: {}
+        extend: {
+            fontFamily: {
+                Roboto: ['Roboto', 'sans-serif'],
+            },
+        },
     },
-    plugins: []
+    plugins: [],
 };
