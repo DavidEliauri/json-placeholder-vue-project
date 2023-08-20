@@ -8,8 +8,8 @@
     const posts = ref([]);
 
     onMounted(async () => {
-        posts.value = await getPosts();
         users.value = await getUsers();
+        posts.value = await getPosts();
     });
 
     const userQuery = ref('');
@@ -50,8 +50,14 @@
         return response.data;
     }
 
+    const usersLoading = ref(false);
+
     async function getUsers() {
+        usersLoading.value = true;
+
         const response = await axios.get('https://jsonplaceholder.typicode.com/users');
+
+        usersLoading.value = false;
 
         return response.data;
     }
@@ -67,7 +73,7 @@
     </div>
 
     <div
-        v-if="postsLoading === true"
+        v-if="postsLoading === true || usersLoading === true"
         class="text-lg text-center"
     >
         Загружаю...
